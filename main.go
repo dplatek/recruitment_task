@@ -1,43 +1,37 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Function to load data from a txt file line by line and convert each line to an integer
+// Function to load data from a txt file into a slice of integers
 func loadDataFromFile(filename string) ([]int, error) {
-	var numbers []int
-
-	// Open the file
-	file, err := os.Open(filename)
+	// Use os.ReadFile to read the contents of the file
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	// Read the file line by line
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		// Convert each line to an integer
-		line := scanner.Text()
-		num, err := strconv.Atoi(line)
-		if err != nil {
-			// If conversion fails, skip this line
-			fmt.Println("Skipping invalid line:", line)
+	// Split the data by new lines and convert each line to an integer
+	lines := strings.Split(string(data), "\n")
+	var numbers []int
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
-		numbers = append(numbers, num)
-	}
-
-	// Check for errors during scanning
-	if err := scanner.Err(); err != nil {
-		return nil, err
+		number, err := strconv.Atoi(line)
+		if err != nil {
+			return nil, fmt.Errorf("invalid number in file: %s", line)
+		}
+		numbers = append(numbers, number)
 	}
 
 	return numbers, nil
@@ -46,38 +40,50 @@ func loadDataFromFile(filename string) ([]int, error) {
 // Function to initialize the server and load the data
 func initializeServer() ([]int, error) {
 	// Load data from a file before starting the server
-	numbers, err := loadDataFromFile("input.txt")
+	fileData, err := loadDataFromFile("input.txt")
 	if err != nil {
 		return nil, err
 	}
 
-	return numbers, nil
+	return fileData, nil
 }
 
-func endpointHandler(c *gin.Context) {
-	indexStr := c.Param("index")
-	index, err := strconv.Atoi(indexStr)
+// Endpoint handler to get the index of a value in the slice
+func endpointHandler(c *gin.Context, data []int) {
+	valueStr := c.Param("value")
+	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid index, must be an integer")
+		c.String(http.StatusBadRequest, "Invalid value, must be an integer")
 		return
 	}
-	c.String(http.StatusOK, fmt.Sprintf("Success: You reached /endpoint/%d", index))
+
+	// Search for the value in the slice
+	for i, v := range data {
+		if v == value {
+			c.String(http.StatusOK, fmt.Sprintf("Value %d found at index %d", value, i))
+			return
+		}
+	}
+
+	// If the value is not found
+	c.String(http.StatusNotFound, fmt.Sprintf("Value %d not found", value))
 }
 
 func main() {
 	// Initialize the server and load data from the file
-	numbers, err := initializeServer()
+	data, err := initializeServer()
 	if err != nil {
 		fmt.Println("Error loading file:", err)
 		return
 	}
 
-	// Print the numbers (optional)
-	fmt.Println("Loaded numbers from file:", numbers)
-
 	// Initialize the Gin router
 	r := gin.Default()
-	r.GET("/endpoint/:index", endpointHandler)
+
+	// Define the route with the handler
+	r.GET("/endpoint/:value", func(c *gin.Context) {
+		endpointHandler(c, data)
+	})
 
 	// Start the Gin server
 	fmt.Println("Server is running on :8080")

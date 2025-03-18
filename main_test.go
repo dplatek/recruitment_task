@@ -6,34 +6,42 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEndpointHandler(t *testing.T) {
+	// Example data that will be loaded from the input.txt file
+	data := []int{0, 10, 20, 100, 1000000}
+
+	// Initialize the Gin router
 	r := gin.Default()
-	r.GET("/endpoint/:index", endpointHandler)
+
+	// Define the route with the handler
+	r.GET("/endpoint/:value", func(c *gin.Context) {
+		endpointHandler(c, data)
+	})
 
 	tests := []struct {
 		name       string
-		index      string
+		value      string
 		expectCode int
 		expectBody string
 	}{
-		{"Valid index", "100", http.StatusOK, "Success: You reached /endpoint/100"},
-		{"Invalid index", "abc", http.StatusBadRequest, "Invalid index, must be an integer"},
+		{"Valid value", "10", http.StatusOK, "Value 10 found at index 1"},
+		{"Value not found", "200", http.StatusNotFound, "Value 200 not found"},
+		{"Invalid value", "abc", http.StatusBadRequest, "Invalid value, must be an integer"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/endpoint/"+tt.index, nil)
+			// Create request using value instead of index
+			req := httptest.NewRequest("GET", "/endpoint/"+tt.value, nil)
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 
-			if w.Code != tt.expectCode {
-				t.Errorf("expected status %d, got %d", tt.expectCode, w.Code)
-			}
-			if w.Body.String() != tt.expectBody {
-				t.Errorf("expected body %q, got %q", tt.expectBody, w.Body.String())
-			}
+			// Assert status code and body
+			assert.Equal(t, tt.expectCode, w.Code)
+			assert.Equal(t, tt.expectBody, w.Body.String())
 		})
 	}
 }
