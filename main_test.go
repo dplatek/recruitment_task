@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,38 +11,36 @@ import (
 )
 
 func TestEndpointHandler(t *testing.T) {
-	// Example data that will be loaded from the input.txt file
 	data := []int{0, 10, 20, 100, 1000000}
 
-	// Initialize the Gin router
 	r := gin.Default()
-
-	// Define the route with the handler
 	r.GET("/endpoint/:value", func(c *gin.Context) {
 		endpointHandler(c, data)
 	})
 
 	tests := []struct {
-		name       string
-		value      string
-		expectCode int
-		expectBody string
+		name        string
+		value       string
+		expectCode  int
+		expectErr   string
+		expectIndex int
 	}{
-		{"Valid value", "10", http.StatusOK, "Value 10 found at index 1"},
-		{"Value not found", "200", http.StatusNotFound, "Value 200 not found"},
-		{"Invalid value", "abc", http.StatusBadRequest, "Invalid value, must be an integer"},
+		{"Valid value - exact match", "10", http.StatusOK, "", 1},
+		{"Valid value - closest match", "21", http.StatusOK, "Value 21 not found, but closest match 20 found at index 2", 2},
+		{"Value not found", "200", http.StatusNotFound, "Value 200 not found", -1},
+		{"Invalid value", "abc", http.StatusBadRequest, "Invalid value, must be an integer", -1},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create request using value instead of index
 			req := httptest.NewRequest("GET", "/endpoint/"+tt.value, nil)
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 
-			// Assert status code and body
 			assert.Equal(t, tt.expectCode, w.Code)
-			assert.Equal(t, tt.expectBody, w.Body.String())
+
+			expectedJSON := fmt.Sprintf(`{"error": "%s", "index": %d}`, tt.expectErr, tt.expectIndex)
+			assert.JSONEq(t, expectedJSON, w.Body.String())
 		})
 	}
 }
