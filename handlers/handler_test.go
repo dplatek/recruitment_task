@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"fmt"
@@ -6,18 +6,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"recruitment_task/handlers"
-
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEndpointHandler(t *testing.T) {
-	data := []int{0, 10, 20, 100, 1000000}
+	gin.SetMode(gin.TestMode)
 
+	input := []int{0, 10, 20, 30, 40, 100, 1000000}
 	r := gin.Default()
 	r.GET("/endpoint/:value", func(c *gin.Context) {
-		handlers.EndpointHandler(c, data)
+		EndpointHandler(c, input)
 	})
 
 	tests := []struct {
@@ -27,10 +26,10 @@ func TestEndpointHandler(t *testing.T) {
 		expectErr   string
 		expectIndex int
 	}{
-		{"Valid value - exact match", "10", http.StatusOK, "", 1},
-		{"Valid value - closest match", "21", http.StatusOK, "Value 21 not found, but closest match 20 found at index 2", 2},
-		{"Value not found", "200", http.StatusNotFound, "Value 200 not found", -1},
-		{"Invalid value", "abc", http.StatusBadRequest, "Invalid value, must be an integer", -1},
+		{"Valid exact match", "10", http.StatusOK, "", 1},
+		{"Closest match", "21", http.StatusOK, "Value 21 not found, but closest match 20 found at index 2", 2},
+		{"Value not found", "1000", http.StatusNotFound, "Value 1000 not found", -1},
+		{"Invalid input", "abc", http.StatusBadRequest, "Invalid value, must be an integer", -1},
 	}
 
 	for _, tt := range tests {

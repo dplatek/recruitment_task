@@ -1,4 +1,4 @@
-package data
+package input
 
 import (
 	"log"
@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-func LoadDataFromFile(filename string) ([]int, error) {
-	log.Println("Info: Loading data from file:", filename)
-	data, err := os.ReadFile(filename)
+func LoadInputFromFile(filename string) ([]int, error) {
+	log.Println("Info: Loading input from file:", filename)
+	input, err := os.ReadFile(filename)
 	if err != nil {
 		log.Printf("Error: Error loading file %s: %v", filename, err)
 		return nil, err
 	}
 
-	lines := strings.Split(string(data), "\n")
+	lines := strings.Split(string(input), "\n")
 	var numbers []int
 
 	for _, line := range lines {

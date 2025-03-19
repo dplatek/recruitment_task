@@ -1,27 +1,27 @@
 package search
 
-func FindCloseEnoughValue(data []int, value int, margin float64) (int, int) {
-	left, right := 0, len(data)-1
+func FindCloseEnoughValue(input []int, value int, margin float64) (int, int) {
+	left, right := 0, len(input)-1
 	var closestValue int
 	var closestIndex int
 	minDiff := margin + 1
 
 	for left <= right {
 		mid := left + (right-left)/2
-		diff := float64(abs(data[mid] - value))
+		diff := float64(abs(input[mid] - value))
 
 		if diff <= margin {
 			if diff < minDiff {
 				minDiff = diff
-				closestValue = data[mid]
+				closestValue = input[mid]
 				closestIndex = mid
 			}
-			if data[mid] < value {
+			if input[mid] < value {
 				left = mid + 1
 			} else {
 				right = mid - 1
 			}
-		} else if data[mid] < value {
+		} else if input[mid] < value {
 			left = mid + 1
 		} else {
 			right = mid - 1

@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"recruitment_task/config"
-	"recruitment_task/data"
 	"recruitment_task/handlers"
+	"recruitment_task/input"
 	"recruitment_task/logger"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +21,7 @@ func main() {
 
 	log.Printf("Info: Server is starting on port %s", configData.Port)
 
-	dataList, err := data.LoadDataFromFile("input.txt")
+	inputList, err := input.LoadInputFromFile("input.txt")
 	if err != nil {
 		log.Fatalf("Error loading data: %v", err)
 		return
@@ -29,7 +29,7 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/endpoint/:value", func(c *gin.Context) {
-		handlers.EndpointHandler(c, dataList)
+		handlers.EndpointHandler(c, inputList)
 	})
 
 	log.Printf("Info: Server is running on :%s", configData.Port)

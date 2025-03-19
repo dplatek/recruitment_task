@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func EndpointHandler(c *gin.Context, data []int) {
+func EndpointHandler(c *gin.Context, input []int) {
 	valueStr := c.Param("value")
 	log.Printf("Info: Received request: %s %s with value %s", c.Request.Method, c.Request.URL.Path, valueStr)
 
@@ -25,7 +25,7 @@ func EndpointHandler(c *gin.Context, data []int) {
 	log.Printf("Debug: Processing value: %d", value)
 
 	margin := float64(value) * 0.10
-	closestValue, closestIndex := search.FindCloseEnoughValue(data, value, margin)
+	closestValue, closestIndex := search.FindCloseEnoughValue(input, value, margin)
 
 	if value == closestValue {
 		log.Printf("Info: Exact match found for value %d at index %d", value, closestIndex)
