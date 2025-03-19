@@ -9,11 +9,11 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	configJSON := `{"port": "8080", "log_level": "Info"}`
-	err := os.WriteFile("test_config.json", []byte(configJSON), 0644)
+	err := os.WriteFile("testconfig.json", []byte(configJSON), 0644)
 	assert.NoError(t, err)
-	defer os.Remove("test_config.json")
+	defer os.Remove("testconfig.json")
 
-	config, err := LoadConfig("test_config.json")
+	config, err := LoadConfig("testconfig.json")
 	assert.NoError(t, err)
 	assert.Equal(t, "8080", config.Port)
 	assert.Equal(t, "Info", config.LogLevel)
