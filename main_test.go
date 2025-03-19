@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"recruitment_task/handlers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,7 +17,7 @@ func TestEndpointHandler(t *testing.T) {
 
 	r := gin.Default()
 	r.GET("/endpoint/:value", func(c *gin.Context) {
-		endpointHandler(c, data)
+		handlers.EndpointHandler(c, data)
 	})
 
 	tests := []struct {
